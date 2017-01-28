@@ -4,7 +4,7 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var MongoClient = require('mongodb').MongoClient;
-var userDAO = require('./dao/UserDAO').UserDAO;
+var userDAO = require('./dao/userDAO').UserDAO;
 var messageDAO  = require('./dao/mensajesDAO').MessageDAO;
 
 app.use(bodyParser());
@@ -25,7 +25,10 @@ MongoClient.connect('mongodb://'+mdbconf.host+':'+mdbconf.port+'/'+mdbconf.db, f
     
     app.post('/signup', function(req, res){
         var usuario = req.body.usuario;
-        usersDAO.addUser(usuario,usuario, function(err,user){
+        var nombre = req.body.nombre;
+        var correo = req.body.correo;
+
+        usersDAO.addUser(usuario,nombre,correo, function(err,user){
             if(err){
                 res.send({'error': true, 'err': err});
             }else{
@@ -59,6 +62,29 @@ MongoClient.connect('mongodb://'+mdbconf.host+':'+mdbconf.port+'/'+mdbconf.db, f
     });
     app.get('/js/chat.js', function(req, res){
         res.sendFile(__dirname + '/vista/js/chat.js');
+    });
+    app.get('/data', function(req,res){
+        //7.1650177,-73.1782861
+        //-34, 151
+
+        var ubicaciones = [
+            {
+                "lat": 7.1650177, "lon": -73.1782861
+            },
+            {
+                "lat": -34, "lon": 151
+            },
+            {
+                "lat": 7.0954552, "lon": -73.1290595
+            }
+        ];
+        var indice = Math.random() * (3-0) + 0;
+        var ubicacion = ubicaciones[parseInt(indice)];
+        res.send(JSON.stringify({lat: ubicacion.lat, lon: ubicacion.lon}));
+    });
+    app.get('/save', function(req,res){
+        var coordenada_string = req.body.coord;
+        
     });
     
     io.on('connection', function(socket){

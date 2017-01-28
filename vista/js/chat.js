@@ -1,19 +1,34 @@
 var user = {};
 var conectados = [];
 
-$('#nick').keyup(function(evt){
-    if (evt.keyCode === 13){
-        registrar(); 
-    }
 
+$(document).ready(function(){
+    var id=GetURLParameter('id');
+    var nombre=encodeURI(GetURLParameter('nombres'));
+    var correo = GetURLParameter('correo');
+    registrar(id, nombre, correo);
 });
 
-function registrar(){
+function GetURLParameter(sParam){
+
+    var sPageURL = window.location.search.substring(1);
+    var sURLVariables = sPageURL.split('&');
+    for (var i = 0; i < sURLVariables.length; i++){
+        var sParameterName = sURLVariables[i].split('=');
+        if (sParameterName[0] == sParam){
+            return sParameterName[1];
+        }
+    }
+}
+
+function registrar(id, nombre, correo){
     $.ajax({
         type: "POST",
         url: '/signup',
         data: {
-           'usuario': $('#nick').val() 
+           'usuario': id,
+           'nombre': nombre,
+           'correo': correo
         }, 
         success: function (data) {
             $('#msg').empty();
@@ -21,19 +36,19 @@ function registrar(){
                 $('#msg').append(data.err.msg);
             }
             else {
-                login();
+                login(id);
             }
         },
         dataType: 'json'
     });
 }
 
-function login(){
+function login(id){
     $.ajax({
         type: "POST",
         url: '/login',
         data: {
-            usuario: $("#nick").val()
+            "usuario": id
         },
         success: function (data) {
             $('#msg').empty();
@@ -57,7 +72,7 @@ function configureSocket(socket) {
         console.log(users.length + ' usuarios recibidos');
         conectados = users;
         for (var i=0; i<users.length; i++){
-            var htmlUser = '<li id="' + users[i].usuario +'">' + users[i].usuario +'</li>';
+            var htmlUser = '<li id="' + users[i].usuario +'">' + decodeURIComponent(users[i].nombre )+'</li>';
             $("#online").append(htmlUser);
         }
     });
@@ -67,7 +82,7 @@ function configureSocket(socket) {
     });
 
     socket.on('new user', function(nuser){
-        var nhtml = '<li id="'+nuser.usuario+'">'+nuser.usuario+'</li>';
+        var nhtml = '<li id="'+nuser.usuario+'">'+decodeURIComponent(nuser.nombre)+'</li>';
         $("#online").append(nhtml);
     });
 

@@ -7,9 +7,10 @@ function UserDAO(db){
     
     var users = db.collection('users');
     
-    this.addUser = function (usuario, email, callback){
+    this.addUser = function (usuario, nombre, email, callback){
         var user = {
             'usuario': usuario,
+            'nombre': decodeURIComponent(nombre),
             'correo': email
         };
         

@@ -2,23 +2,34 @@
 <head>
     <meta charset="UTF-8">
     <title>Chat de soporte</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 </head>
 <body>
-  <div id="alerts"></div>
-   <div>
-       <input type="text" id="nick">
-       <div id="msg"></div>
-   </div>
-   <br>
-   <div>
-       <ul  id="online"></ul>
-   </div>
-   <br>
-    <h3>Mensajes:</h3>
-    <ul id="list-msgs">
+
+<br>
+<div id="alerts"></div>
+<div id="msg"></div>
+<div class="container-fluid">
+  <div class="panel panel-default">
+    <div class="panel-heading">Docentes Conectados</div>
+    <div class="panel-body">
+      <ul  id="online"></ul>
+    </div>
+  </div>
+  <div class="panel panel-default">
+    <div class="panel-heading">Messages:</div>
+    <div class="panel-body">
+      <ul id="list-msgs">
         
-    </ul>
-    <textarea  cols="30" rows="5" placeholder="New message" id="new-msg" ></textarea>
+      </ul>
+    </div>
+    <div class="panel-footer">
+      <input type="text" id="new-msg" class="form-control">
+
+    </div>
+  </div>
+</div>
+  
     
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="/socket.io/socket.io.js"></script>
