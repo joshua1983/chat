@@ -6,6 +6,7 @@ var io = require('socket.io')(http);
 var MongoClient = require('mongodb').MongoClient;
 var userDAO = require('./dao/userDAO').UserDAO;
 var messageDAO  = require('./dao/mensajesDAO').MessageDAO;
+var ubicacionDAO = require('./dao/ubicacionDAO').UbicacionDAO;
 
 app.use(bodyParser());
 
@@ -20,6 +21,7 @@ MongoClient.connect('mongodb://'+mdbconf.host+':'+mdbconf.port+'/'+mdbconf.db, f
     
     var usersDAO = new userDAO(db);
     var mensajesDAO = new messageDAO(db);
+    var ubicaDAO = new ubicacionDAO(db);
     var onlineUsers = [];
     
     
@@ -39,7 +41,23 @@ MongoClient.connect('mongodb://'+mdbconf.host+':'+mdbconf.port+'/'+mdbconf.db, f
             }
         });
     });
-    
+    app.get('/signup', function(req, res){
+        var usuario = req.body.usuario;
+        var nombre = req.body.nombre;
+        var correo = req.body.correo;
+
+        usersDAO.addUser(usuario,nombre,correo, function(err,user){
+            if(err){
+                res.send({'error': true, 'err': err});
+            }else{
+                res.send({
+                    'error': false,
+                    'user': user
+                });
+            }
+        });
+    });
+
     app.post('/login', function(req, res){
         var usuario = req.body.usuario;
         usersDAO.validateLogin(usuario,function(err, user){
@@ -56,7 +74,22 @@ MongoClient.connect('mongodb://'+mdbconf.host+':'+mdbconf.port+'/'+mdbconf.db, f
             }            
         });
     });
-    
+    app.get('/login', function(req, res){
+        var usuario = req.body.usuario;
+        usersDAO.validateLogin(usuario,function(err, user){
+            if(err){
+                res.send({
+                    'error': true,
+                    'err': err
+                });
+            }else{
+                res.send({
+                    'error': false,
+                    'user': user
+                });
+            }            
+        });
+    });
     app.get('/', function(req,res){
         res.sendFile(__dirname + '/vista/chat.html');
     });
@@ -66,22 +99,53 @@ MongoClient.connect('mongodb://'+mdbconf.host+':'+mdbconf.port+'/'+mdbconf.db, f
     app.get('/data', function(req,res){
         //7.1650177,-73.1782861
         //-34, 151
-
+/*
         var ubicaciones = [
             {
-                "lat": 7.1650177, "lon": -73.1782861
+                "lat": 7.117127, "lon": -73.105399
             },
             {
-                "lat": -34, "lon": 151
+                "lat": 7.118099, "lon": -73.105148
             },
             {
-                "lat": 7.0954552, "lon": -73.1290595
+                "lat": 7.118929, "lon": -73.104872
+            },
+            {
+                "lat": 7.117803, "lon": -73.104621
+            },
+            {
+                "lat": 7.116606, "lon": -73.104327
+            },
+            {
+                "lat": 7.115674, "lon": -73.104748
             }
+
         ];
-        var indice = Math.random() * (3-0) + 0;
+        var indice = Math.random() * (6-0) + 0;
         var ubicacion = ubicaciones[parseInt(indice)];
-        res.send(JSON.stringify({lat: ubicacion.lat, lon: ubicacion.lon}));
+        */
+        ubicaDAO.ultimaUbicacion(1, function(err, ubicacion){
+            console.log(ubicacion);
+            res.send(ubicacion);
+        });
+        
+        
     });
+
+    app.get('/setData/:lat/:lon', function(req,res){
+        var latitud = req.params.lat;
+        var longitud = req.params.lon;
+        console.log(latitud);
+        ubicaDAO.addUbicacion(latitud, longitud, function(err, ubic){
+            res.send({ 
+                    'error': false,
+                    'err': '-',
+                    'lat': latitud, 
+                    'lon': longitud
+                });
+        });
+    });
+
     app.get('/save', function(req,res){
         var coordenada_string = req.body.coord;
         
@@ -91,6 +155,7 @@ MongoClient.connect('mongodb://'+mdbconf.host+':'+mdbconf.port+'/'+mdbconf.db, f
         console.log("nuevo usuario");
         
         socket.on('all online users', function(){
+            console.log(onlineUsers);
             socket.emit('all online users', onlineUsers);
         });
 
@@ -111,6 +176,7 @@ MongoClient.connect('mongodb://'+mdbconf.host+':'+mdbconf.port+'/'+mdbconf.db, f
             socket.user = nuser;
             onlineUsers.push(nuser);
             io.emit('new user',nuser);
+            console.log(onlineUsers);
         });
     });
 

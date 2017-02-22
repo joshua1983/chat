@@ -22,6 +22,9 @@ function GetURLParameter(sParam){
 }
 
 function registrar(id, nombre, correo){
+    user.usuario = id;
+    user.nombre = nombre;
+    user.correo = correo;
     $.ajax({
         type: "POST",
         url: '/signup',
@@ -59,6 +62,7 @@ function login(id){
             }
             else {
                 user = data.user;
+                
                 var socket = new io();
                 configureSocket(socket);
             }
@@ -68,13 +72,17 @@ function login(id){
 }
 
 function configureSocket(socket) {
+
     socket.on('all online users', function(users){
-        console.log(users.length + ' usuarios recibidos');
+        console.log(users);
         conectados = users;
         for (var i=0; i<users.length; i++){
-            var htmlUser = '<li id="' + users[i].usuario +'">' + decodeURIComponent(users[i].nombre )+'</li>';
-            $("#online").append(htmlUser);
+            if (users[i].usuario != user.usuario){
+                var htmlUser = '<li id="' + users[i].usuario +'"> <input type="checkbox" value="chk_' + users[i].usuario +'" /> ' + decodeURIComponent(users[i].nombre )+'</li>';
+                $("#online").append(htmlUser);    
+            }
         }
+        $("#cantidad_conectados").html(users.length);
     });
 
     socket.on('chat mensaje', function(msg){
@@ -82,8 +90,10 @@ function configureSocket(socket) {
     });
 
     socket.on('new user', function(nuser){
-        var nhtml = '<li id="'+nuser.usuario+'">'+decodeURIComponent(nuser.nombre)+'</li>';
-        $("#online").append(nhtml);
+        if (nuser.usuario != user.usuario){
+            var nhtml = '<li id="'+nuser.usuario+'">'+decodeURIComponent(nuser.nombre)+'</li>';
+            $("#online").append(nhtml);
+        }
     });
 
     socket.on('remove user', function(nuser){
@@ -94,13 +104,16 @@ function configureSocket(socket) {
     $('#new-msg').keyup(function (evt){
         var destino = conectados.slice(-1).pop();
         if (evt.keyCode === 13){
-            var mensaje = {
-                usuario: user.usuario,
-                para: destino.usuario,
-                mensaje: $("#new-msg").val()
-            }
-            socket.emit('chat mensaje', mensaje );
-            $("#new-msg").val('');
+            $("checkbox :checked").each(function(){
+                var mensaje = {
+                    usuario: user.usuario,
+                    para: $(this).val(),
+                    mensaje: $("#new-msg").val()
+                }
+                socket.emit('chat mensaje', mensaje );
+                $("#new-msg").val('');
+            })
+            
         }
     });
 
